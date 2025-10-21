@@ -22,29 +22,46 @@ test.describe('Flujo de Compra en SauceDemo', () => {
             await page.waitForSelector('.inventory_item', { state: 'visible', timeout: 15000 }); 
         });
 
+        // --- PASO CLAVE: Capturar los precios ANTES de ordenar (para tener una referencia) ---
+        // Aunque el WHEN aplica el ordenamiento, capturamos los precios justo antes de verificar.
+        let actualPrices: number[] = [];
+
         await test.step('WHEN: Seleccionar la opción "Price (low to high)" del menú Sort', async () => {
             
             // 1. Localizar el menú desplegable de ordenamiento (Sort)
             const sortDropdown = page.locator('.product_sort_container');
             
             // 2. Seleccionar la opción 'Price (low to high)' cuyo valor es 'lohi'
-            //
             await sortDropdown.selectOption('lohi');
+            
+            // Damos un breve tiempo extra para que el DOM se actualice después del select.
+            await page.waitForTimeout(500); 
         });
 
-        await test.step('THEN: Verificar que el producto más barato es el primero de la lista', async () => {
+        await test.step('THEN: Verificar que la lista de precios está ordenada de forma ascendente', async () => {
             
-            // 1. Verificar el nombre del primer producto
-            const firstItemName = page.locator('.inventory_item_name').first();
-            await expect(firstItemName).toHaveText('Sauce Labs Onesie'); // El producto más barato es el Onesie
+            // 1. Leer TODOS los precios que se muestran en la página DESPUÉS de ordenar
+            const priceElements = await page.locator('.inventory_item_price').all();
             
-            // 2. Verificar el precio del primer producto
-            const firstItemPrice = page.locator('.inventory_item_price').first();
-            await expect(firstItemPrice).toHaveText('$7.99'); // Su precio es $7.99
+            // 2. Extraer el texto de cada elemento, limpiar el símbolo '$', y convertirlo a número
+            for (const priceElement of priceElements) {
+                const priceText = await priceElement.innerText();
+                // Elimina '$' y convierte a punto flotante (e.g., "$29.99" -> 29.99)
+                const priceValue = parseFloat(priceText.replace('$', ''));
+                actualPrices.push(priceValue);
+            }
             
-            // Opcional: Verificar que el segundo producto es más caro que el primero.
-            // Para mayor robustez, se recomienda verificar que el título y precio
-            // del primer elemento coincidan con el valor más bajo conocido.
+            // 3. Crear la lista ESPERADA (ordenando la lista capturada de forma ascendente)
+            // Hacemos una copia (.slice()) y la ordenamos
+            const expectedPrices = actualPrices.slice().sort((a, b) => a - b); 
+            
+            // 4. AFIRMACIÓN CLAVE: Comprobar que la lista leída de la página (actualPrices) 
+            //    es idéntica a la lista que debería estar ordenada (expectedPrices)
+            await expect(actualPrices).toEqual(expectedPrices);
+
+            // Opcional: Para verificar que NO está fallando por un error del sitio, 
+            // también puedes verificar el primer y último elemento.
+            console.log(`Precios en página (ascendente): ${actualPrices.join(', ')}`);
         });
     });
 });
