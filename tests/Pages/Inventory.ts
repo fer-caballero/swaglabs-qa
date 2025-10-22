@@ -5,7 +5,7 @@ export class Inventory {
     readonly title: Locator;
     readonly bikeLightAddButton: Locator;
     readonly labsAddButton: Locator;
-    readonly addlogoToCartButton: Locator;
+    readonly logoToCartButton: Locator;
     readonly bikelightPrice: Locator;
     readonly bikelightTitle: Locator;
     readonly labsPrice: Locator;
@@ -17,7 +17,7 @@ export class Inventory {
         this.title = page.getByText('Products');
         this.bikeLightAddButton = page.getByRole('button', { name: 'ADD TO CART' }).nth(1);
         this.labsAddButton = page.getByRole('button', { name: 'ADD TO CART' }).nth(4);
-        this.addlogoToCartButton = page.locator('#shopping_cart_container').getByRole('link');
+        this.logoToCartButton = page.locator('#shopping_cart_container').getByRole('link');
         this.bikelightPrice = page.getByText('$9.99');
         this.bikelightTitle = page.getByRole('link', { name: 'Sauce Labs Bike Light' });
         this.labsPrice = page.getByText('$7.99');
@@ -25,4 +25,19 @@ export class Inventory {
         this.orderSelect = page.getByRole('combobox');
     }
     
+    async addBikeLightToCart() {
+        await this.bikeLightAddButton.click();
+    }
+
+    async addLabsToCart() {
+        await this.labsAddButton.click();
+    }
+    
+    async goToCart() {
+        await this.logoToCartButton.click();
+    }
+
+    async selectOrder(option: string) {
+        await this.orderSelect.selectOption(option);
+    }
 }
