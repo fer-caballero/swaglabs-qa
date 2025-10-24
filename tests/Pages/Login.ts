@@ -5,12 +5,14 @@ export class Login {
     readonly usernameTxt: Locator;
     readonly passwordTxt: Locator;
     readonly loginBtn: Locator;
+    readonly errorMsg: Locator;
 
     constructor(page: Page) {
         this.page = page;
         this.usernameTxt = page.locator('[data-test="username"]');
         this.passwordTxt = page.locator('[data-test="password"]');
         this.loginBtn = page.getByRole('button', { name: 'LOGIN' });
+        this.errorMsg = page.locator('[data-test="error"]');
     }
 
     async fillUsername(username: string) {
